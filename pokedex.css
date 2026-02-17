@@ -1,0 +1,467 @@
+/* Modal slideout left para equipo */
+.modal-dialog-slideout-left {
+    position: fixed;
+    left: 0;
+    top: 0;
+    margin: 0;
+    height: 100vh;
+    max-width: 350px;
+    width: 100vw;
+    pointer-events: auto;
+    z-index: 1050;
+    display: flex;
+    align-items: stretch;
+}
+.modal.fade .modal-dialog-slideout-left {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+}
+.modal.show .modal-dialog-slideout-left {
+    transform: translateX(0);
+}
+body.night-mode .text-muted {
+    color: #ffe082 !important;
+}
+body.night-mode .moves-modal-body {
+    background: #23272b !important;
+}
+body.night-mode .moves-modal-card {
+    background: #181a1b !important;
+    color: #fbc531 !important;
+    border: 1px solid #444 !important;
+    box-shadow: 0 2px 8px rgba(251,197,49,0.08) !important;
+}
+body.night-mode .moves-modal-card:hover {
+    background: #222831 !important;
+    box-shadow: 0 4px 16px rgba(251,197,49,0.18) !important;
+}
+body.night-mode .moves-modal-card strong {
+    color: #fbc531 !important;
+}
+body.night-mode .move-info-modal-body {
+    background: #23272b !important;
+    color: #fbc531 !important;
+}
+body.night-mode .move-info-modal-body strong {
+    color: #fbc531 !important;
+}
+/* --- Modo Noche --- */
+:root {
+    --main-bg: #f5f5f5;
+    --main-text: #222;
+    --header-bg: #e3350d;
+    --header-text: #fff;
+    --table-bg: #fff;
+    --table-row-alt: #f8f9fa;
+    --card-bg: #fff;
+    --modal-bg: #fff;
+}
+
+body.night-mode {
+    --main-bg: #181a1b;
+    --main-text: #e0e0e0;
+    --header-bg: #222831;
+    --header-text: #fbc531;
+    --table-bg: #23272b;
+    --table-row-alt: #1a1d1f;
+    --card-bg: #23272b;
+    --modal-bg: #23272b;
+    background: var(--main-bg) !important;
+    color: var(--main-text) !important;
+}
+
+body.night-mode .search-bar-container {
+    background: var(--header-bg) !important;
+    color: var(--header-text) !important;
+}
+
+body.night-mode table {
+    background: var(--table-bg) !important;
+    color: var(--main-text) !important;
+}
+
+body.night-mode th, body.night-mode td {
+    background: var(--table-bg) !important;
+    color: var(--main-text) !important;
+}
+
+body.night-mode tr:nth-child(even) {
+    background: var(--table-row-alt) !important;
+}
+
+body.night-mode .modal-content, body.night-mode .offcanvas {
+    background: var(--modal-bg) !important;
+    color: var(--main-text) !important;
+}
+
+body.night-mode .btn, body.night-mode .btn-primary, body.night-mode .btn-danger, body.night-mode .btn-outline-secondary {
+    filter: brightness(0.9) contrast(1.1);
+}
+
+body.night-mode .nombre-poke {
+    color: #fbc531 !important;
+}
+
+body.night-mode .pokemon-type-img {
+    filter: brightness(0.85) contrast(1.1);
+}
+
+body.night-mode .equipo-highlight {
+    box-shadow: 0 0 0 0.4rem #fbc53199 !important;
+}
+
+body.night-mode .offcanvas {
+    background: var(--modal-bg) !important;
+}
+
+body.night-mode .bg-light {
+    background: #23272b !important;
+    color: #e0e0e0 !important;
+}
+
+body.night-mode .bg-dark {
+    background: #181a1b !important;
+    color: #fbc531 !important;
+}
+
+body.night-mode .bg-success {
+    background: #1e5631 !important;
+    color: #fbc531 !important;
+}
+
+body.night-mode .bg-danger {
+    background: #8b0000 !important;
+    color: #fff !important;
+}
+
+body.night-mode .modal-header, body.night-mode .modal-footer {
+    background: #23272b !important;
+    color: #fbc531 !important;
+}
+
+body.night-mode .form-control, body.night-mode input, body.night-mode select {
+    background: #23272b !important;
+    color: #fbc531 !important;
+    border-color: #444 !important;
+}
+
+body.night-mode .dropdown-menu {
+    background: #23272b !important;
+    color: #fbc531 !important;
+}
+
+body.night-mode .list-group-item {
+    background: #23272b !important;
+    color: #fbc531 !important;
+}
+
+body.night-mode .btn-close {
+    filter: invert(1) grayscale(1);
+}
+
+body.night-mode .added-effect {
+    background: linear-gradient(90deg, #222831 60%, #fbc531 100%) !important;
+    color: #222 !important;
+}
+/* Habilidades DND en minificha */
+.dnd-minificha-skills {
+    margin-bottom: 10px;
+    margin-top: 6px;
+    background: #f6f3fa;
+    border-radius: 8px;
+    padding: 8px 10px;
+    border: 1px solid #e3e6ee;
+}
+.dnd-minificha-skills-title {
+    font-weight: bold;
+    color: #6a4a8a;
+    font-size: 1em;
+    margin-bottom: 6px;
+}
+.dnd-minificha-skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    justify-content: space-between;
+}
+.dnd-minificha-skill {
+    font-size: 0.98em;
+    color: #4a3a6a;
+    background: #f9f7fc;
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin-bottom: 4px;
+    border: 1px solid #e3e6ee;
+}
+/* Minificha DND para popup de stats */
+.dnd-minificha-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(80,80,120,0.08);
+    padding: 18px 16px 12px 16px;
+    margin: 0 auto;
+    max-width: 420px;
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    border: 1px solid #e3e6ee;
+}
+.dnd-minificha-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e6f0fa;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 1.08em;
+    margin-bottom: 12px;
+    color: #2a3a4a;
+}
+.dnd-minificha-stats-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.dnd-minificha-stat {
+    flex: 1 1 0;
+    background: #f7f8fa;
+    border-radius: 6px;
+    padding: 8px 0 4px 0;
+    text-align: center;
+    color: #3a3a3a;
+    font-size: 1em;
+    box-shadow: 0 1px 3px rgba(100,100,100,0.07);
+    border: 1px solid #e3e6ee;
+}
+.dnd-minificha-stat span {
+    display: block;
+    font-weight: bold;
+    font-size: 0.98em;
+    margin-bottom: 2px;
+    color: #6a7a8a;
+}
+.dnd-minificha-stat small {
+    color: #a0a0a0;
+    font-size: 0.92em;
+}
+.dnd-minificha-footer {
+    text-align: center;
+    background: #f0f7e6;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 1em;
+    color: #2a4a2a;
+    border: 1px solid #e3e6ee;
+}
+/* Pastel para stats secundarios en popup */
+.stats-modal-stat.pastel {
+    background: #f7f8fa;
+    border-radius: 6px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    color: #3a3a3a;
+    box-shadow: 0 1px 3px rgba(100,100,100,0.07);
+}
+*{
+    text-align: center !important;
+}
+
+/* Centrar cabecera flotante de la tabla */
+
+
+#floating-header {
+    display: flex;
+    justify-content: center;
+    width: 60vw; 
+    margin-left: 15vw;
+     margin-right: 15vw;
+    background: transparent;
+    z-index: 2000;
+}
+#floating-header table {
+    margin: 0 auto;
+    pointer-events: auto;
+}
+/* =============================
+    Estilos de cabeceras de tabla
+    ============================= */
+
+    #floating-header{
+        align-items: center;
+    }
+/* Sticky table header */
+thead.table-dark {
+    position: sticky;
+    top: 5px; /* Altura aproximada de la barra de búsqueda */
+    z-index: 102;
+    background: #212529;
+}
+
+@media (max-width: 768px) {
+    thead.table-dark {
+        top: 80px;
+    }
+}
+/* Capitalizar la columna de tamaño */
+.pokemon-size-text {
+    text-transform: capitalize;
+}
+/* pokedex.css */
+.pokemon-type-img {
+    margin-left: 4px;
+    object-fit: contain;
+    background: #eee;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+}
+
+.toggle-formas-btn {
+    padding: 0px 5px 0px 5px !important;
+    line-height: 1;
+    border-radius: 50%;
+    background: #f5f5f5;
+    border: 1px solid #bbb;
+    color: #888;
+    transition: background 0.2s, color 0.2s;
+    font-size: 10px !important;
+}
+.toggle-formas-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+.toggle-icon {
+    font-size: 1em;
+    vertical-align: middle;
+}
+
+.ability-badge {
+    cursor: pointer;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    transition: background 0.2s, color 0.2s;
+}
+.ability-badge:hover {
+    background: #ffd966;
+    color: #222;
+}
+
+.stats-scroll {
+    overflow-x: auto;
+    min-width: 420px;
+}
+.table-responsive {
+    overflow-x: auto;
+    width: 100%;
+}
+.table-responsive-fixed {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 4px 0;
+}
+
+table {
+    display: block;
+    overflow-x: scroll;
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stats-modal-body {
+    padding: 20px 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+}
+.stats-modal-stat {
+    flex: 1 1 120px;
+    min-width: 100px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 12px 8px;
+    text-align: center;
+    margin: 0;
+    border: 1px solid #e0e0e0;
+    transition: box-shadow 0.2s;
+}
+.stats-modal-stat strong {
+    font-size: 1.2em;
+    color: #212529;
+    margin-bottom: 4px;
+    display: block;
+}
+.stats-modal-stat span.text-muted {
+    font-size: 0.95em;
+    color: #888;
+}
+.stats-modal-stat:last-child {
+    border-right: none;
+}
+
+.moves-modal-body {
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: flex-start;
+}
+.moves-modal-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 10px 12px;
+    min-width: 110px;
+    max-width: 110px;
+    width: 110px;
+    height: 48px;
+    text-align: center;
+    font-size: 0.95em;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: box-shadow 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.moves-modal-card:hover {
+    background: #e6f7ff;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.moves-modal-card strong {
+    color: #212529;
+    font-size: 1em;
+    margin-bottom: 0;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.move-info-modal-body {
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 1.1em;
+}
+.move-info-modal-body strong {
+    color: #212529;
+    font-size: 1.15em;
+    margin-right: 6px;
+}
+.move-info-modal-body > div {
+    margin-bottom: 10px;
+}

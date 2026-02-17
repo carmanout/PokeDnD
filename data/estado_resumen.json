@@ -1,0 +1,30 @@
+[
+  {
+    "nombre": "Dormido",
+    "efecto": "Al quedarse dormido, tira 1d4. El Pokémon no puede realizar acciones y despierta tras 1d4 turnos o si recibe daño directo." 
+  },
+  {
+    "nombre": "Paralizado",
+    "efecto": "La velocidad en pies se reduce a la mitad y al inicio de cada turno lanza 1d4: si sale 1, no puede actuar ese turno." 
+  },
+  {
+    "nombre": "Envenenado",
+    "efecto": "Pierde 1d4 de sus PG al final de cada turno. Cada turno, se le añade 1d4 adicional." 
+  },
+  {
+    "nombre": "Quemado",
+    "efecto": "Pierde 1d4 de sus PG al final de cada turno. El daño de los ataques físicos se tira con desventaja." 
+  },
+  {
+    "nombre": "Congelado",
+    "efecto": "No puede actuar. Al inicio de cada turno lanza 1d4: si sale 4, se descongela." 
+  },
+  {
+    "nombre": "Confundido",
+    "efecto": "Al inicio de cada turno lanza 1d4: si sale 1-2, se hiere a sí mismo 1d8+FUE en vez de actuar. Dura 1d4 turnos." 
+  },
+  {
+    "nombre": "Enamorado",
+    "efecto": "El efecto dura hasta que el pokemon que le enamoró es sustituido o derrotado, o hasta que el afectado es sustituido o derrotado. Antes de cada ataque contra el objetivo, si es el que lo enamoró, lanza 1d4. Si sale 1, el ataque no se realiza." 
+  }
+]

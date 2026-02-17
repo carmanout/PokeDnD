@@ -1,0 +1,704 @@
+<link rel="stylesheet" href="./pokedex.css">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pokédex DnD</title>
+	<!-- Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+	<!-- Bootstrap Icons -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+	   <style>
+		   body {
+			   background: #f5f5f5;
+		   }
+		   .search-bar-container {
+			   position: sticky;
+			   top: 0;
+			   z-index: 103;
+			   background: #e3350d;
+			   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+		   }
+		   /* Efecto de highlight para el botón de equipo */
+		   .equipo-highlight {
+			   animation: equipoPulse 0.7s cubic-bezier(.4,0,.2,1);
+			   box-shadow: 0 0 0 0.4rem rgba(13,110,253,0.4) !important;
+		   }
+		   @keyframes equipoPulse {
+			   0% { box-shadow: 0 0 0 0.4rem rgba(13,110,253,0.4); }
+			   60% { box-shadow: 0 0 0 0.8rem rgba(13,110,253,0.2); }
+			   100% { box-shadow: 0 0 0 0 rgba(13,110,253,0); }
+		   }
+		   /* Efecto llamativo para el nombre del Pokémon */
+		   .nombre-poke.added-effect {
+			   animation: addedPop 0.7s cubic-bezier(.36,1.56,.64,1) 1;
+			   color: #fff !important;
+			   background: linear-gradient(90deg, #e3350d 60%, #fbc531 100%);
+			   border-radius: 0.5em;
+			   padding: 0.1em 0.5em;
+			   box-shadow: 0 0 10px #e3350d66;
+		   }
+		   @keyframes addedPop {
+			   0% { transform: scale(1); filter: brightness(1); }
+			   20% { transform: scale(1.25) rotate(-2deg); filter: brightness(1.2); }
+			   40% { transform: scale(0.95) rotate(2deg); filter: brightness(1.1); }
+			   60% { transform: scale(1.15) rotate(-1deg); filter: brightness(1.3); }
+			   80% { transform: scale(0.98) rotate(1deg); filter: brightness(1.1); }
+			   100% { transform: scale(1); filter: brightness(1); }
+		   }
+	   </style>
+</head>
+<body>
+	   <button id="estadoResumenBtn" class="btn btn-lg btn-danger shadow rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="position:fixed;top:10px;left:10px;z-index:1000;">
+		   <i class="bi bi-exclamation-triangle-fill"></i>
+		   <span>Efectos de Estado</span>
+	   </button>
+	<button id="nightModeBtn" class="btn btn-sm btn-dark shadow rounded-pill px-2 py-1 d-flex align-items-center gap-1" style="position:fixed;top:70px;left:10px;z-index:1000;">
+		   <i class="bi bi-moon-stars-fill"></i>
+		   <span>Modo Noche</span>
+	   </button>
+	   <button id="equipoBtn" class="btn btn-lg btn-primary shadow rounded-pill px-4 py-2 d-flex align-items-center gap-2" style="position:fixed;top:10px;right:10px;z-index:1000;">
+		   <i class="bi bi-people-fill"></i>
+		   <span>Equipo</span>
+	   </button>
+	<div class="offcanvas offcanvas-bottom" tabindex="-1" id="equipoOffcanvas" aria-labelledby="equipoOffcanvasLabel" style="height:40vh;">
+		<div class="offcanvas-header">
+			<h5 class="offcanvas-title" id="equipoOffcanvasLabel">Mi Equipo</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		</div>
+		<div class="offcanvas-body" id="equipoOffcanvasBody" style="overflow-y:auto;"></div>
+	</div>
+	<div class="search-bar-container py-3">
+		<div class="container">
+			<div class="row justify-content-center">
+				<div class="col-12 col-md-8 col-lg-6">
+					<input type="text" id="searchInput" class="form-control form-control-lg" placeholder="Buscar Pokémon por nombre...">
+				</div>
+			</div>
+		</div>
+	</div>
+	   <div class="container mt-4">
+		   <div id="floating-header" style="display:none;position:fixed;top:0;left:0;width:100vw;z-index:2000;"></div>
+		   <div id="results"></div>
+	   </div>
+	<!-- Bootstrap JS Bundle -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+	   <script type="module">
+// --- Modo noche toggle ---
+document.getElementById('nightModeBtn').addEventListener('click', function() {
+	document.body.classList.toggle('night-mode');
+	// Guardar preferencia en localStorage
+	if(document.body.classList.contains('night-mode')) {
+		localStorage.setItem('nightMode', '1');
+	} else {
+		localStorage.removeItem('nightMode');
+	}
+});
+// Al cargar, aplicar preferencia si existe
+if(localStorage.getItem('nightMode')) {
+	document.body.classList.add('night-mode');
+}
+// --- Cabecera flotante para la tabla ---
+function createFloatingHeader() {
+	const resultsDiv = document.getElementById('results');
+	const floatingHeader = document.getElementById('floating-header');
+	if (!resultsDiv || !floatingHeader) return;
+	const table = resultsDiv.querySelector('table');
+	if (!table) {
+		floatingHeader.style.display = 'none';
+		return;
+	}
+	const thead = table.querySelector('thead');
+	if (!thead) {
+		floatingHeader.style.display = 'none';
+		return;
+	}
+	// Clonar la cabecera
+	floatingHeader.innerHTML = '';
+	const cloneTable = document.createElement('table');
+	cloneTable.className = table.className;
+	cloneTable.style.margin = '0';
+	cloneTable.style.width = '100%';
+	cloneTable.appendChild(thead.cloneNode(true));
+	floatingHeader.appendChild(cloneTable);
+	// Ajustar ancho de columnas
+	const origThs = thead.querySelectorAll('th');
+	const cloneThs = cloneTable.querySelectorAll('th');
+	if (origThs.length === cloneThs.length) {
+		origThs.forEach((th, i) => {
+			cloneThs[i].style.width = th.offsetWidth + 'px';
+		});
+	}
+	floatingHeader.style.display = 'block';
+	// Ajustar top según el buscador
+	const searchBar = document.querySelector('.search-bar-container');
+	floatingHeader.style.top = (searchBar ? searchBar.offsetHeight : 0) + 'px';
+}
+
+function hideFloatingHeader() {
+	const floatingHeader = document.getElementById('floating-header');
+	if (floatingHeader) floatingHeader.style.display = 'none';
+}
+
+function handleFloatingHeader() {
+	const resultsDiv = document.getElementById('results');
+	const table = resultsDiv ? resultsDiv.querySelector('table') : null;
+	const thead = table ? table.querySelector('thead') : null;
+	if (!thead) return hideFloatingHeader();
+	const rect = thead.getBoundingClientRect();
+	const searchBar = document.querySelector('.search-bar-container');
+	const searchBarHeight = searchBar ? searchBar.offsetHeight : 0;
+	if (rect.bottom < searchBarHeight + 2) {
+		createFloatingHeader();
+	} else {
+		hideFloatingHeader();
+	}
+}
+
+window.addEventListener('scroll', handleFloatingHeader);
+window.addEventListener('resize', handleFloatingHeader);
+// Función para devolver las dimensiones según el tamaño (debe estar en el scope global)
+window.getSizeDimensions = function(size) {
+    switch ((size||'').toLowerCase()) {
+        case 'diminuto': return '2,5 x 2,5 pies';
+        case 'pequeño': return '5 x 5 pies';
+        case 'mediano': return '5 x 5 pies';
+        case 'grande': return '10 x 10 pies';
+        case 'enorme': return '15 x 15 pies';
+        case 'gargantuesco': return '20 x 20 pies o más';
+        default: return '';
+    }
+}
+	import { getAllPokemonList } from './dataLoader.js';
+	import { AbilitiesText } from './data/habtxt.js';
+	import { getMoveNameById } from './data/moveUtils.js';
+	import { addToEquipo } from './equipo.js';
+	// Efecto visual al añadir al equipo
+	window.flashEquipoBtn = function() {
+		const btn = document.getElementById('equipoBtn');
+		if (!btn) return;
+		btn.classList.add('equipo-highlight');
+		setTimeout(() => btn.classList.remove('equipo-highlight'), 700);
+	}
+	// Hacer disponibles globalmente para el equipo
+	window.AbilitiesText = AbilitiesText;
+	window.getMoveNameById = getMoveNameById;
+	// Declarar showMovesModal global antes de su definición
+	window.showMovesModal = async function(){};
+	// Variables para los datos de los JSON
+	let MoveEffects = {};
+	let MovePowerDice = {};
+	let MoveRanges = {};
+
+	// Función para cargar los JSON
+	async function loadMoveJsonData() {
+		[MoveEffects, MovePowerDice, MoveRanges] = await Promise.all([
+			fetch('./data/move_effects.json').then(r => r.json()),
+			fetch('./data/move_power_dice.json').then(r => r.json()),
+			fetch('./data/move_ranges.json').then(r => r.json()),
+		]);
+	}
+
+		const searchInput = document.getElementById('searchInput');
+		const resultsDiv = document.getElementById('results');
+		let allPokemon = [];
+		let currentList = [];
+
+		function renderResults(list) {
+			if (!list || list.length === 0) {
+				currentList = [];
+				resultsDiv.innerHTML = '<div class="alert alert-warning">No se encontraron Pokémon.</div>';
+				return;
+			}
+					   // Filtrar según el nombre
+					   // Eliminar filtro restrictivo, mostrar todos los Pokémon
+					   currentList = list;
+					   resultsDiv.innerHTML = `
+				<div class="table-responsive">
+					<table class="table table-striped align-middle">
+						<thead class="table-dark">
+							<tr>
+								<th scope="col" class="text-center align-middle bg-gradient bg-primary text-white">Pokémon</th>
+								<th scope="col" class="text-center align-middle bg-gradient bg-info text-dark">Tipo</th>
+								<th scope="col" class="text-center align-middle bg-gradient bg-secondary text-white">Tamaño</th>
+								<th scope="col" class="text-center align-middle bg-gradient bg-light text-dark">Habilidades</th>
+								<th scope="col" class="text-center align-middle bg-gradient bg-dark text-white">Estadísticas D&D</th>
+								<th scope="col" class="text-center align-middle bg-gradient bg-success text-white">Movimientos</th>
+							</tr>
+						</thead>
+						<tbody>
+							${list.map((p, idx) => {
+								const hasFormas = p.formas && p.formas.length > 0;
+								const rowId = `pokemon-row-${idx}`;
+								const mainRow = `
+									<tr>
+										<td class="fw-bold">
+										  <span class="nombre-poke" data-idx="${idx}" style="cursor:pointer;text-decoration:underline;">${p.name}</span>
+										  ${hasFormas ? `<button class="btn btn-xs btn-outline-secondary ms-2 toggle-formas-btn" type="button" onclick="toggleFormas('${rowId}', this)" title="Mostrar formas"><span class="toggle-icon">&#9660;</span></button>` : ''}
+										</td>
+										
+										<td>
+											${p.types.map(type => `
+												<img src="./data/types/${type.toLowerCase()}.png" alt="${type}" title="${type}" class="pokemon-type-img">
+											`).join('')}
+										</td>
+										   <td class="pokemon-size-text">${p.tamano} <span class="badge bg-secondary ms-1" style="font-size:0.85em;vertical-align:middle;">${window.getSizeDimensions(p.tamano)}</span></td>
+										<td class="text-center">
+											${p.abilities ? Object.values(p.abilities).map(hab => `<span class="badge bg-info text-dark mx-1 ability-badge" data-ability="${hab}">${hab}</span>`).join('') : ''}
+										</td>
+										<td class="text-center">
+											<button class="btn btn-sm btn-dark stats-btn" data-idx="${idx}">Ver estadísticas</button>
+										</td>
+										<td class="text-center">
+											<button class="btn btn-sm btn-success moves-btn" data-idx="${idx}">Ver movimientos</button>
+										</td>
+									</tr>
+								`;
+								let formasRows = '';
+								if (hasFormas) {
+									formasRows = `<tbody id="${rowId}" style="display:none;">` + p.formas.map((f, fidx) => `
+									<tr class="table-secondary">
+										<td class="ps-4">↳ <span class="fw-bold">${f.name}</span></td>
+										<td>
+											${f.types.map(type => `
+												<img src="./data/types/${type.toLowerCase()}.png" alt="${type}" title="${type}" class="pokemon-type-img">
+											`).join('')}
+										</td>
+										   <td class="pokemon-size-text">${f.tamano} <span class="badge bg-secondary ms-1" style="font-size:0.85em;vertical-align:middle;">${window.getSizeDimensions(f.tamano)}</span></td>
+										<td class="text-center">
+											${f.abilities ? Object.values(f.abilities).map(hab => `<span class="badge bg-info text-dark mx-1 ability-badge" data-ability="${hab}">${hab}</span>`).join('') : ''}
+										</td>
+										<td class="text-center">
+											<button class="btn btn-sm btn-dark stats-btn" data-idx="${idx}" data-forma="${fidx}">Ver estadísticas</button>
+										</td>
+										<td class="text-center">
+											<button class="btn btn-sm btn-success moves-btn" data-idx="${idx}" data-forma="${fidx}">Ver movimientos</button>
+										</td>
+									</tr>
+								`).
+								join('') + '</tbody>';
+								   }
+									// Inicializar tooltips de Bootstrap para los tamaños
+				// Inicializar tooltips de Bootstrap para los tamaños
+				setTimeout(() => {
+					const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+					tooltipTriggerList.forEach(el => {
+						const instance = window.bootstrap.Tooltip.getOrCreateInstance(el);
+						instance.enable();
+					});
+				}, 100);
+								return mainRow + formasRows;
+							}).join('')}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="modal fade" id="abilityModal" tabindex="-1" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="abilityModalLabel"></h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body" id="abilityModalBody"></div>
+						</div>
+					</div>
+				</div>
+				<div class="modal fade" id="statsModal" tabindex="-1" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="statsModalLabel">Estadísticas D&D</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body" id="statsModalBody"></div>
+						</div>
+					</div>
+				</div>
+				<div class="offcanvas offcanvas-end" tabindex="-1" id="movesOffcanvas" aria-labelledby="movesOffcanvasLabel" data-bs-backdrop="false" data-bs-keyboard="true">
+					<div class="offcanvas-header">
+						<h5 class="offcanvas-title" id="movesOffcanvasLabel">Movimientos</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+					</div>
+					<div class="offcanvas-body" id="movesOffcanvasBody"></div>
+				</div>
+				<!-- Añadir el modal de información de movimiento fuera del renderResults -->
+				<div class="modal fade" id="moveInfoModal" tabindex="-1" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="moveInfoModalLabel">Movimiento</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body" id="moveInfoModalBody"></div>
+						</div>
+					</div>
+				</div>
+			`;
+		}
+
+		function onSearch() {
+			const value = searchInput.value.trim().toLowerCase();
+			const filtered = allPokemon.filter(p => {
+				// Buscar en nombre base y formas
+				if (p.name.toLowerCase().includes(value) || (p.id && p.id.toLowerCase().includes(value))) return true;
+				if (p.formas && p.formas.some(f => f.name.toLowerCase().includes(value) || (f.id && f.id.toLowerCase().includes(value)))) return true;
+				return false;
+			});
+			renderResults(filtered);
+		}
+
+		// Inicialización
+
+		// Inicializar tooltips Bootstrap en todo el documento al cargar
+		document.addEventListener('DOMContentLoaded', async () => {
+			setTimeout(() => {
+				const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+				tooltipTriggerList.forEach(el => {
+					const instance = window.bootstrap.Tooltip.getOrCreateInstance(el);
+					instance.enable();
+				});
+			}, 200);
+			// Esperar a que los JSON estén cargados antes de usar los datos
+			await loadMoveJsonData();
+			// Delegación para añadir Pokémon al equipo
+			resultsDiv.addEventListener('click', function(e) {
+				   const nombre = e.target.closest('.nombre-poke');
+				   if (nombre) {
+					   const idx = nombre.getAttribute('data-idx');
+					   const poke = currentList[idx];
+					   addToEquipo(poke);
+					   // Efecto visual llamativo
+					   nombre.classList.remove('added-effect');
+					   void nombre.offsetWidth; // reflow para reiniciar animación
+					   nombre.classList.add('added-effect');
+					   setTimeout(() => nombre.classList.remove('added-effect'), 800);
+					   if (window.flashEquipoBtn) window.flashEquipoBtn();
+					   return;
+				   }
+			});
+
+			// Delegación para tarjetas de movimiento
+			document.body.addEventListener('click', async function(e) {
+				const card = e.target.closest('.moves-modal-card');
+				if (card) {
+					// El id real del movimiento está en data-move
+					const moveId = card.getAttribute('data-move');
+					const pokemon = card.getAttribute('data-pokemon') || '';
+					const label = document.getElementById('moveInfoModalLabel');
+					const body = document.getElementById('moveInfoModalBody');
+					if (!label || !body) return;
+					if (!window.Moves) {
+						await import('./data/moves.js');
+					}
+					let moveObj = window.Moves[moveId];
+					let moveName = moveObj && moveObj.name ? moveObj.name : moveId;
+					let moveCategory = moveObj && moveObj.category ? moveObj.category : '';
+					// Buscar los PP del movimiento en la lista actual
+					let movePP = null;
+					if (typeof currentList !== 'undefined' && pokemon) {
+						let poke = currentList.find(p => p.name === pokemon);
+						if (!poke && currentList.length && currentList[0].formas) {
+							// Buscar en formas
+							for (const base of currentList) {
+								if (base.formas && base.formas.length) {
+									poke = base.formas.find(f => f.name === pokemon);
+									if (poke) break;
+								}
+							}
+						}
+						if (poke && poke.movesPP && poke.movesPP[moveId]) {
+							movePP = poke.movesPP[moveId];
+						}
+					}
+					if (!movePP && moveObj && typeof moveObj.pp !== 'undefined') {
+						movePP = Math.floor(moveObj.pp / 1.5)
+					}
+					function getMoveJsonValue(obj, key, fallback) {
+						if (!obj) return fallback;
+						if (typeof obj[key] !== 'undefined' && obj[key]) return obj[key];
+						return fallback;
+					}
+					let effect = getMoveJsonValue(MoveEffects, moveId, 'Sin efecto.');
+					let dice = getMoveJsonValue(MovePowerDice, moveId, 'N/A');
+					let range = getMoveJsonValue(MoveRanges, moveId, 'N/A');
+					if (dice === null || dice === '') dice = 'N/A';
+					if (range === null || range === '') range = 'N/A';
+					label.textContent = moveName;
+					let categoriaHtml = moveCategory;
+					let extraDamageText = '';
+					// Lógica diferenciada para física y especial
+					if (moveCategory && moveCategory.toLowerCase() === 'physical') {
+						let acc = 100;
+						if (moveObj && typeof moveObj.accuracy !== 'undefined') {
+							acc = moveObj.accuracy === true ? 100 : Number(moveObj.accuracy);
+						}
+						let penalizador = 0;
+						if (acc < 100) {
+							penalizador = -Math.floor((100 - acc) / 10);
+						}
+						let penalizadorTxt = penalizador < 0 ? ` ${penalizador}` : '';
+						categoriaHtml = `Física. Para impactar, usa 1d20+FUE${penalizadorTxt} enfrentada a la CA del objetivo.`;
+						extraDamageText = ' <span class="text-muted">+ FUE/DES (lo que sea mayor)</span>';
+					} else if (moveCategory && moveCategory.toLowerCase() === 'special') {
+						let acc = 100;
+						if (moveObj && typeof moveObj.accuracy !== 'undefined') {
+							acc = moveObj.accuracy === true ? 100 : Number(moveObj.accuracy);
+						}
+						let penalizador = 0;
+						if (acc < 100) {
+							penalizador = -Math.floor((100 - acc) / 10);
+						}
+						let penalizadorTxt = penalizador < 0 ? ` ${penalizador}` : '';
+						// Determinar la tirada según el tipo principal del movimiento
+						let saveType = 'salvación';
+						if (moveObj && moveObj.type) {
+							const type = Array.isArray(moveObj.type) ? moveObj.type[0].toLowerCase() : moveObj.type.toLowerCase();
+							if (["fire","bug","normal","flying","rock"].includes(type)) {
+								saveType = 'Destreza';
+							} else if (["dragon","electric","ice","poison","fighting"].includes(type)) {
+								saveType = 'Constitución';
+							} else if (["fairy","grass","water","ground","steel"].includes(type)) {
+								saveType = 'Sabiduría';
+							} else if (["dark","psychic","ghost"].includes(type)) {
+								saveType = 'Carisma';
+							}
+						}
+						categoriaHtml = `Especial. Para impactar, el objetivo debe tirar una tirada de salvación de ${saveType}${penalizadorTxt}. Si pasa la salvación, recibe la mitad de daño.`;
+					}
+					body.innerHTML = `
+						<div class="move-info-modal-body">
+							<div><strong>Categoría:</strong> ${categoriaHtml}</div>
+							<div><strong>Efecto:</strong> ${effect}</div>
+							<div><strong>Daño:</strong> ${dice}${extraDamageText}</div>
+							<div><strong>Rango:</strong> ${range}</div>
+							${movePP ? `<div><strong>PP:</strong> ${movePP}</div>` : ''}
+						</div>
+					`;
+					const modal = new window.bootstrap.Modal(document.getElementById('moveInfoModal'));
+					modal.show();
+				}
+			});
+
+			// Delegación para botón de movimientos
+			resultsDiv.addEventListener('click', function(e) {
+				const movesBtn = e.target.closest('.moves-btn');
+				if (movesBtn) {
+					const idx = movesBtn.getAttribute('data-idx');
+					const formaIdx = movesBtn.getAttribute('data-forma');
+					let poke;
+					if (typeof formaIdx !== 'undefined' && formaIdx !== null) {
+						poke = currentList[idx]?.formas?.[formaIdx];
+					} else {
+						poke = currentList[idx];
+					}
+					let moves = poke && poke.moves ? poke.moves : [];
+					// document.getElementById('movesModalLabel').textContent = poke.name; // Ya no existe, solo offcanvas
+					showMovesModal(poke, moves);
+					return;
+				}
+			});
+
+		// Función auxiliar asíncrona para mostrar los nombres reales de los movimientos
+		async function showMovesModal(poke, moves) {
+				// Registrar la función global real
+				window.showMovesModal = showMovesModal;
+				// Si el equipo está abierto, ciérralo antes de mostrar movimientos
+				const equipoOffcanvasEl = document.getElementById('equipoOffcanvas');
+				if (equipoOffcanvasEl && equipoOffcanvasEl.classList.contains('show')) {
+					const equipoOffcanvas = window.bootstrap.Offcanvas.getOrCreateInstance(equipoOffcanvasEl);
+					equipoOffcanvas.hide();
+					// Esperar a que termine de cerrar antes de abrir el de movimientos
+					await new Promise(res => setTimeout(res, 350));
+				}
+			const movesOffcanvasBody = document.getElementById('movesOffcanvasBody');
+			const movesOffcanvasLabel = document.getElementById('movesOffcanvasLabel');
+			movesOffcanvasLabel.textContent = poke.name;
+			if (moves.length === 0) {
+				movesOffcanvasBody.innerHTML = '<div class="alert alert-warning">No hay movimientos disponibles.</div>';
+			} else {
+				if (!window.Moves) {
+					await import('./data/moves.js');
+				}
+				movesOffcanvasBody.innerHTML = `
+					<div class="row g-2">
+						${moves.map(mov => {
+							const realName = window.getMoveNameById ? window.getMoveNameById(mov) : mov;
+							const pp = poke.movesPP && poke.movesPP[mov] ? poke.movesPP[mov] : '';
+							return `<div class=\"col-12 col-md-4\"><div class=\"moves-modal-card w-100 h-100 p-3 border rounded bg-light mb-2 d-flex align-items-center justify-content-center text-center\" style=\"min-height:3rem;word-break:break-word;white-space:normal;\" data-move=\"${mov}\" data-pokemon=\"${poke.name}\"><strong style=\"width:100%;display:block;overflow-wrap:break-word;word-break:break-word;white-space:normal;\">${realName}${pp ? ` <span class='badge bg-secondary ms-1' title='PP'>${pp} PP</span>` : ''}</strong></div></div>`;
+						}).join('')}
+					</div>
+				`;
+				// Hacer la función accesible globalmente para el equipo
+				window.showMovesModal = showMovesModal;
+			}
+			const offcanvasEl = document.getElementById('movesOffcanvas');
+			const offcanvas = window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+			offcanvas.show();
+			setTimeout(() => {
+				const closeBtn = offcanvasEl.querySelector('.btn-close');
+				if (closeBtn) closeBtn.focus();
+			}, 200);
+		}
+					// Limpieza de backdrop y clases al cerrar cualquier modal
+					function cleanModalBackdrop() {
+						setTimeout(() => {
+							const backdrops = document.querySelectorAll('.modal-backdrop');
+							const anyModalOpen = document.querySelector('.modal.show');
+							if (!anyModalOpen && backdrops.length) {
+								backdrops.forEach(bd => bd.parentNode && bd.parentNode.removeChild(bd));
+								document.body.classList.remove('modal-open');
+							}
+						}, 300);
+					}
+					document.addEventListener('hidden.bs.modal', cleanModalBackdrop);
+			allPokemon = getAllPokemonList();
+			renderResults(allPokemon);
+			// Delegación para badges de habilidad y botón de estadísticas
+			resultsDiv.addEventListener('click', function(e) {
+				const badge = e.target.closest('.ability-badge');
+				if (badge) {
+					const ability = badge.getAttribute('data-ability');
+					const idx = badge.closest('tr')?.querySelector('.stats-btn')?.getAttribute('data-idx');
+					let poke = idx !== undefined ? currentList[idx] : null;
+					const def = AbilitiesText[ability?.toLowerCase()] || AbilitiesText[ability?.replace(/ /g, '').toLowerCase()];
+					const modalLabel = document.getElementById('abilityModalLabel');
+					if (modalLabel && poke) {
+						modalLabel.textContent = poke.name + ' - ' + (def?.name || ability);
+					} else {
+						modalLabel.textContent = def?.name || ability;
+					}
+					document.getElementById('abilityModalBody').textContent = def?.desc || def?.shortDesc || 'Sin descripción.';
+					const modal = new window.bootstrap.Modal(document.getElementById('abilityModal'));
+					modal.show();
+					return;
+				}
+				const statsBtn = e.target.closest('.stats-btn');
+				if (statsBtn) {
+					const idx = statsBtn.getAttribute('data-idx');
+					const formaIdx = statsBtn.getAttribute('data-forma');
+					let poke;
+					if (typeof formaIdx !== 'undefined' && formaIdx !== null) {
+						poke = currentList[idx]?.formas?.[formaIdx];
+					} else {
+						poke = currentList[idx];
+					}
+					if (poke && poke.statsDnD) {
+						const s = poke.statsDnD;
+						document.getElementById('statsModalLabel').textContent = poke.name + ' - Estadísticas D&D';
+						const tiradaSalvacion = 8 + (s.modINT || 0) + (s.modSAB || 0);
+						// Habilidades DND y sus bonificadores
+						const habilidades = [
+							{ nombre: 'Atletismo', stat: 'modFUE' },
+							{ nombre: 'Acrobacias', stat: 'modDES' },
+							{ nombre: 'Juego de Manos', stat: 'modDES' },
+							{ nombre: 'Sigilo', stat: 'modDES' },
+							{ nombre: 'Pokedex', stat: 'modINT' },
+							{ nombre: 'Investigación', stat: 'modINT' },
+							{ nombre: 'Naturaleza', stat: 'modINT' },
+							{ nombre: 'PokeSocial', stat: 'modSAB' },
+							{ nombre: 'Perspicacia', stat: 'modSAB' },
+							{ nombre: 'Medicina', stat: 'modSAB' },
+							{ nombre: 'Percepción', stat: 'modSAB' },
+							{ nombre: 'Supervivencia', stat: 'modSAB' },
+							{ nombre: 'Engañar', stat: 'modCAR' },
+							{ nombre: 'Intimidación', stat: 'modCAR' },
+							{ nombre: 'Interpretación', stat: 'modCAR' },
+							{ nombre: 'Persuasión', stat: 'modCAR' }
+						];
+						const habilidadesHtml = `
+							<div class="dnd-minificha-skills">
+								<div class="dnd-minificha-skills-title">Habilidades D&D</div>
+								<div class="dnd-minificha-skills-list">
+									${habilidades.map(h => {
+										const val = s[h.stat] || 0;
+										const sign = val >= 0 ? '+' : '';
+										return `<span class="dnd-minificha-skill"><strong>${h.nombre}:</strong> ${sign}${val}</span>`;
+									}).join('')}
+								</div>
+							</div>
+						`;
+						document.getElementById('statsModalBody').innerHTML = `
+							<div class="dnd-minificha-card">
+								<div class="dnd-minificha-header">
+									<span class="dnd-minificha-pg"><strong>PG:</strong> ${s.PG}</span>
+									<span class="dnd-minificha-ca"><strong>CA:</strong> ${s.CA}</span>
+									<span class="dnd-minificha-vel"><strong>Velocidad:</strong> ${s.velocidadFt} ft</span>
+								</div>
+								<div class="dnd-minificha-stats-row">
+									<div class="dnd-minificha-stat"><span>FUE</span><div>${s.FUE} <small>(${s.modFUE >= 0 ? '+' : ''}${s.modFUE})</small></div></div>
+									<div class="dnd-minificha-stat"><span>DES</span><div>${s.DES} <small>(${s.modDES >= 0 ? '+' : ''}${s.modDES})</small></div></div>
+									<div class="dnd-minificha-stat"><span>CON</span><div>${s.CON} <small>(${s.modCON >= 0 ? '+' : ''}${s.modCON})</small></div></div>
+									<div class="dnd-minificha-stat"><span>INT</span><div>${s.INT} <small>(${s.modINT >= 0 ? '+' : ''}${s.modINT})</small></div></div>
+									<div class="dnd-minificha-stat"><span>SAB</span><div>${s.SAB} <small>(${s.modSAB >= 0 ? '+' : ''}${s.modSAB})</small></div></div>
+									<div class="dnd-minificha-stat"><span>CAR</span><div>${s.CAR} <small>(${s.modCAR >= 0 ? '+' : ''}${s.modCAR})</small></div></div>
+								</div>
+								${habilidadesHtml}
+								<div class="dnd-minificha-footer">
+									<span class="dnd-minificha-save"><strong>Tirada de salvación:</strong> ${tiradaSalvacion}</span>
+								</div>
+							</div>
+						`;
+						const modal = new window.bootstrap.Modal(document.getElementById('statsModal'));
+						modal.show();
+					}
+				}
+			});
+		});
+		searchInput.addEventListener('input', onSearch);
+		</script>
+	<script>
+	// Función global para mostrar/ocultar formas
+	window.toggleFormas = function(rowId, btn) {
+		const el = document.getElementById(rowId);
+		if (el) {
+			const isOpen = el.style.display !== 'none';
+			el.style.display = isOpen ? 'none' : '';
+			if (btn) {
+				const icon = btn.querySelector('.toggle-icon');
+				if (icon) {
+					icon.innerHTML = isOpen ? '&#9660;' : '&#9650;';
+				}
+			}
+		}
+	};
+	</script>
+	<script>
+	// Función para normalizar el nombre del movimiento
+	function normalizeMoveName(name) {
+		return name.toLowerCase().replace(/[^a-z0-9]/g, '');
+	}
+	</script>
+<div class="modal fade" id="estadoResumenModal" tabindex="-1" aria-labelledby="estadoResumenLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="estadoResumenLabel">Resumen de Efectos de Estado</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body" id="estadoResumenBody">
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+<script>
+document.getElementById('estadoResumenBtn').addEventListener('click', async function() {
+	try {
+		const res = await fetch('data/estado_resumen.json');
+		const estados = await res.json();
+		let html = '<ul style="padding-left: 1.2em;">';
+		estados.forEach(e => {
+			html += `<li><b>${e.nombre}:</b> ${e.efecto}</li>`;
+		});
+		html += '</ul>';
+		document.getElementById('estadoResumenBody').innerHTML = html;
+		const modal = new window.bootstrap.Modal(document.getElementById('estadoResumenModal'));
+		modal.show();
+	} catch (err) {
+		document.getElementById('estadoResumenBody').textContent = 'No se pudo cargar el resumen.';
+	}
+});
+</script>
+</html>
