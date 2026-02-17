@@ -92,7 +92,7 @@ function calcularEstadisticasDnD(data, tamano) {
 // dataLoader.js
 // Este fichero importa y expone la lista de Pokémon del dnddex.js
 import { Pokedex } from './data/dnddex.js';
-import '../data/learnset.js'; // Asegura que window.Learnsets esté disponible
+import './data/learnset.js'; // Asegura que window.Learnsets esté disponible
 
 function calcularTamano(heightm) {
     if (heightm < 0.3) return 'diminuto';
